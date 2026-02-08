@@ -13,7 +13,18 @@ python run.py
 
 - **Swagger UI**: http://210.101.236.166/docs
 
-## 서버 데몬 등록 (Linux)
+## 서버 배포 (Linux)
+
+```bash
+cd /root
+git clone https://github.com/gsc-lab/rest_api.git
+cd rest_api
+pip install -r requirements.txt
+```
+
+### 데몬 등록
+
+`rest-api.service` 파일이 프로젝트에 포함되어 있으며, `/root/rest_api` 경로 기준으로 설정되어 있습니다.
 
 ```bash
 sudo cp rest-api.service /etc/systemd/system/
@@ -22,10 +33,20 @@ sudo systemctl enable rest-api    # 부팅 시 자동 시작
 sudo systemctl start rest-api     # 서비스 시작
 ```
 
+### 서비스 관리
+
 ```bash
 sudo systemctl status rest-api    # 상태 확인
 sudo systemctl restart rest-api   # 재시작
 sudo journalctl -u rest-api -f    # 로그 확인
+```
+
+### 코드 업데이트 반영
+
+```bash
+cd /root/rest_api
+git pull
+sudo systemctl restart rest-api
 ```
 
 ## API 시나리오
