@@ -11,7 +11,22 @@ python run.py
 
 서버가 실행되면 브라우저에서 Swagger UI에 접속하여 API를 테스트할 수 있습니다.
 
-- **Swagger UI**: http://localhost:5001/docs
+- **Swagger UI**: http://210.101.236.166/docs
+
+## 서버 데몬 등록 (Linux)
+
+```bash
+sudo cp rest-api.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable rest-api    # 부팅 시 자동 시작
+sudo systemctl start rest-api     # 서비스 시작
+```
+
+```bash
+sudo systemctl status rest-api    # 상태 확인
+sudo systemctl restart rest-api   # 재시작
+sudo journalctl -u rest-api -f    # 로그 확인
+```
 
 ## API 시나리오
 
