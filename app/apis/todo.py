@@ -48,13 +48,15 @@ class TodoList(Resource):
     @ns.marshal_with(todo_model, code=201)
     def post(self, user_id):
         """새로운 할 일을 추가합니다."""
-        data = ns.payload
-        if not data or not data.get("text", "").strip():
-            ns.abort(400, "text is required")
+        data = ns.payload or {}
+        text = data.get("text")
+
+        if not isinstance(text, str) or not text.strip():
+            ns.abort(400, "text(string) is required")
 
         todo = {
             "id": int(time.time() * 1000),
-            "text": data["text"].strip(),
+            "text": text.strip(),
             "completed": False,
         }
         get_user_todos(user_id).append(todo)
@@ -71,7 +73,7 @@ class TodoItem(Resource):
     @ns.marshal_with(todo_model)
     def patch(self, user_id, todo_id):
         """할 일의 내용이나 완료 상태를 수정합니다."""
-        data = ns.payload
+        data = ns.payload or {}
         todos = get_user_todos(user_id)
         todo = next((t for t in todos if t["id"] == todo_id), None)
 
@@ -79,9 +81,13 @@ class TodoItem(Resource):
             ns.abort(404, "todo not found")
 
         if "completed" in data:
+            if not isinstance(data["completed"], bool):
+                ns.abort(400, "completed must be a boolean (true/false)")
             todo["completed"] = data["completed"]
         if "text" in data:
-            todo["text"] = data["text"]
+            if not isinstance(data["text"], str) or not data["text"].strip():
+                ns.abort(400, "text must be a non-empty string")
+            todo["text"] = data["text"].strip()
 
         return todo
 
