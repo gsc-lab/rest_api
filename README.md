@@ -2,6 +2,8 @@
 
 학과 REST API 실습을 위한 테스트 서버입니다. Swagger UI를 통해 각 API의 사용법을 확인할 수 있습니다.
 
+- **Swagger UI**: http://210.101.236.166/docs
+
 ## 실행 방법
 
 ### Docker (권장)
@@ -10,8 +12,6 @@
 docker compose up -d
 ```
 
-http://localhost/docs 에서 Swagger UI에 접속할 수 있습니다.
-
 ### 로컬 실행
 
 ```bash
@@ -19,7 +19,20 @@ pip install -r requirements.txt
 python run.py
 ```
 
-http://localhost:5001/docs 에서 Swagger UI에 접속할 수 있습니다.
+## 서버 주소 변경
+
+기본 서버 주소는 `210.101.236.166:80`입니다. 변경이 필요한 경우 아래 파일을 수정하세요.
+
+| 파일 | 설명 |
+|------|------|
+| `run.py` | 로컬 실행 시 `HOST`, `PORT` 기본값 |
+| `docker-compose.yml` | Docker 실행 시 포트 매핑 (`ports`) |
+
+환경변수로도 오버라이드할 수 있습니다.
+
+```bash
+HOST=0.0.0.0 PORT=5001 python run.py
+```
 
 ## 서버 배포
 
