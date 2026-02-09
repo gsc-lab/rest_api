@@ -23,12 +23,31 @@ todo_model = ns.model("Todo", {
 # ── 인메모리 저장소 ────────────────────────────────────────────
 
 todos_db = {}
+_last_id = 0
+
+
+def _generate_id():
+    """밀리초 타임스탬프 기반 ID를 생성한다. 동일 밀리초 충돌을 방지한다."""
+    global _last_id
+    new_id = int(time.time() * 1000)
+    if new_id <= _last_id:
+        new_id = _last_id + 1
+    _last_id = new_id
+    return new_id
 
 
 def get_user_todos(user_id):
     if user_id not in todos_db:
         todos_db[user_id] = []
     return todos_db[user_id]
+
+
+def parse_todo_id(raw):
+    """todo_id 문자열을 정수로 변환하고, 실패 시 400 에러를 반환한다."""
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        ns.abort(400, "todo_id must be a number")
 
 
 # ── API 엔드포인트 ─────────────────────────────────────────────
@@ -41,21 +60,23 @@ class TodoList(Resource):
     @ns.marshal_list_with(todo_model)
     def get(self, user_id):
         """해당 사용자의 전체 할 일 목록을 반환합니다."""
-        return get_user_todos(user_id)
+        return todos_db.get(user_id, [])
 
     @ns.doc("할 일 추가")
     @ns.expect(todo_input)
     @ns.marshal_with(todo_model, code=201)
     def post(self, user_id):
         """새로운 할 일을 추가합니다."""
-        data = ns.payload or {}
+        data = ns.payload
+        if not isinstance(data, dict):
+            ns.abort(400, "request body must be a JSON object")
         text = data.get("text")
 
         if not isinstance(text, str) or not text.strip():
             ns.abort(400, "text(string) is required")
 
         todo = {
-            "id": int(time.time() * 1000),
+            "id": _generate_id(),
             "text": text.strip(),
             "completed": False,
         }
@@ -63,7 +84,7 @@ class TodoList(Resource):
         return todo, 201
 
 
-@ns.route("/<string:user_id>/todos/<int:todo_id>")
+@ns.route("/<string:user_id>/todos/<string:todo_id>")
 @ns.param("user_id", "사용자 ID")
 @ns.param("todo_id", "할 일 ID")
 class TodoItem(Resource):
@@ -73,8 +94,11 @@ class TodoItem(Resource):
     @ns.marshal_with(todo_model)
     def patch(self, user_id, todo_id):
         """할 일의 내용이나 완료 상태를 수정합니다."""
-        data = ns.payload or {}
-        todos = get_user_todos(user_id)
+        todo_id = parse_todo_id(todo_id)
+        data = ns.payload
+        if not isinstance(data, dict):
+            ns.abort(400, "request body must be a JSON object")
+        todos = todos_db.get(user_id, [])
         todo = next((t for t in todos if t["id"] == todo_id), None)
 
         if todo is None:
@@ -94,7 +118,8 @@ class TodoItem(Resource):
     @ns.doc("할 일 삭제")
     def delete(self, user_id, todo_id):
         """할 일을 삭제합니다."""
-        todos = get_user_todos(user_id)
+        todo_id = parse_todo_id(todo_id)
+        todos = todos_db.get(user_id, [])
         todo = next((t for t in todos if t["id"] == todo_id), None)
 
         if todo is None:
