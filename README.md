@@ -4,51 +4,37 @@
 
 ## 실행 방법
 
+### Docker (권장)
+
+```bash
+docker compose up -d
+```
+
+http://localhost/docs 에서 Swagger UI에 접속할 수 있습니다.
+
+### 로컬 실행
+
 ```bash
 pip install -r requirements.txt
 python run.py
 ```
 
-서버가 실행되면 브라우저에서 Swagger UI에 접속하여 API를 테스트할 수 있습니다.
+http://localhost:5001/docs 에서 Swagger UI에 접속할 수 있습니다.
 
-- **Swagger UI**: http://210.101.236.166/docs
-
-## 서버 배포 (Linux)
+## 서버 배포
 
 ```bash
-cd /root
 git clone https://github.com/gsc-lab/rest_api.git
 cd rest_api
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-### 데몬 등록
-
-`rest-api.service` 파일이 프로젝트에 포함되어 있으며, `/root/rest_api` 경로 기준으로 설정되어 있습니다.
-
-```bash
-sudo cp rest-api.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable rest-api    # 부팅 시 자동 시작
-sudo systemctl start rest-api     # 서비스 시작
-```
-
-### 서비스 관리
-
-```bash
-sudo systemctl status rest-api    # 상태 확인
-sudo systemctl restart rest-api   # 재시작
-sudo journalctl -u rest-api -f    # 로그 확인
+docker compose up -d
 ```
 
 ### 코드 업데이트 반영
 
 ```bash
-cd /root/rest_api
+cd rest_api
 git pull
-sudo systemctl restart rest-api
+docker compose up -d --build
 ```
 
 ## API 시나리오
